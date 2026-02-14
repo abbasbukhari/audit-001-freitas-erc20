@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity >=0.8.13 <0.9.0;
 
 import "forge-std/Test.sol";
 import "../src/ERC20.sol";
@@ -12,8 +12,62 @@ contract ERC20Test is Test {
     address charlie = makeAddr("charlie");
 
     function setUp() public {
-        token = new ERC20("Test Token", "TEST", 18, 0);
+        token = new ERC20("Test Token", "TEST", 18, 1000e18);
     }
 
-    // Tests go here
+    // ============================================
+    // TOTAL SUPPLY TESTS
+    // ============================================
+
+    function test_TotalSupply_InitialSupply() public view {
+        assertEq(token.totalSupply(), 1000e18, "Total supply should match initial supply");
+    }
+
+    // ============================================
+    // BALANCE OF TESTS
+    // ============================================
+
+    function test_BalanceOf_OwnerHasInitialSupply() public view {
+        assertEq(token.balanceOf(owner), 1000e18, "Owner should have all initial tokens");
+    }
+
+    function test_BalanceOf_NewAddressHasZero() public view {
+        assertEq(token.balanceOf(alice), 0, "New address should have zero balance");
+    }
+
+    // ============================================
+    // TRANSFER TESTS
+    // ============================================
+
+    // TODO: Add transfer tests here
+
+    // ============================================
+    // APPROVE & ALLOWANCE TESTS
+    // ============================================
+
+    // TODO: Add approve tests here
+
+    // ============================================
+    // TRANSFER FROM TESTS
+    // ============================================
+
+    // TODO: Add transferFrom tests here
+
+    // ============================================
+    // MINT TESTS
+    // ============================================
+
+    // TODO: Add mintTo tests here
+
+    // ============================================
+    // BURN TESTS
+    // ============================================
+
+    // TODO: Add burn tests here
+
+    // ============================================
+    // PAUSE TESTS
+    // ============================================
+
+    // TODO: Add pause/unpause tests here
 }
