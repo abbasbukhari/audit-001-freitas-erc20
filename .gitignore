@@ -12,3 +12,6 @@ docs/
 
 # Dotenv file
 .env
+
+# Project notes (local only)
+CLAUDE.md

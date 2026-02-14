@@ -19,12 +19,12 @@ contract ERC20 is IERC20, Ownable, Pausable {
     mapping(address => uint256) internal _balances;
     mapping(address => mapping(address => uint256)) internal _allowed;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    // event Transfer(address indexed from, address indexed to, uint256 value);
+    // event Approval(
+    //     address indexed owner,
+    //     address indexed spender,
+    //     uint256 value
+    // );
 
     /**
      * @dev Constructor that gives msg.sender all of existing tokens.
