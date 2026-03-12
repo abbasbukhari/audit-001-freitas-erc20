@@ -145,13 +145,90 @@ contract ERC20Test is Test {
     // MINT TESTS
     // ============================================
 
-    // TODO: Add mintTo tests here
+    function test_Mint_Success() public {
+        uint256 aliceBefore = token.balanceOf(alice);
+        uint256 supplyBefore = token.totalSupply();
+        token.mintTo(alice, 200e18);
+        uint256 aliceAfter = token.balanceOf(alice);
+        uint256 supplyAfter = token.totalSupply();
+        assertEq(
+            aliceAfter,
+            aliceBefore + 200e18,
+            "Alice's balance should increase by minted amount"
+        );
+        assertEq(
+            supplyAfter,
+            supplyBefore + 200e18,
+            "Total supply should increase by minted amount"
+        );
+    }
+
+    function test_MintTo_NotOwner_Reverts() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(alice);
+        token.mintTo(alice, 200e18);
+    }
 
     // ============================================
     // BURN TESTS
     // ============================================
 
-    // TODO: Add burn tests here
+    function test_Burn_Success() public {
+        uint256 ownerBefore = token.balanceOf(owner);
+        uint256 supplyBefore = token.totalSupply();
+        token.burn(200e18);
+        uint256 ownerAfter = token.balanceOf(owner);
+        uint256 supplyAfter = token.totalSupply();
+        assertEq(
+            ownerAfter,
+            ownerBefore - 200e18,
+            "Owner's balance should decrease by burned amount"
+        );
+        assertEq(
+            supplyAfter,
+            supplyBefore - 200e18,
+            "Total supply should decrease by burned amount"
+        );
+    }
+
+    function test_Burn_InsufficientBalance_Reverts() public {
+        vm.expectRevert("ERC20: insufficient balance");
+        vm.prank(alice);
+        token.burn(100e18);
+    }
+
+    function test_BurnFrom_Success() public {
+        token.approve(alice, 500e18);
+        uint256 ownerBefore = token.balanceOf(owner);
+        uint256 supplyBefore = token.totalSupply();
+        vm.prank(alice);
+        token.burnFrom(owner, 100e18);
+        uint256 ownerAfter = token.balanceOf(owner);
+        uint256 supplyAfter = token.totalSupply();
+        assertEq(
+            ownerAfter,
+            ownerBefore - 100e18,
+            "Owner's balance should decrease by burned amount"
+        );
+        assertEq(
+            supplyAfter,
+            supplyBefore - 100e18,
+            "Total supply should decrease by burned amount"
+        );
+    }
+
+    function test_BurnFrom_InsufficientBalance_Reverts() public {
+        vm.expectRevert("ERC20: insufficient balance");
+        vm.prank(alice);
+        token.burnFrom(alice, 100e18);
+    }
+
+    function test_BurnFrom_NotAllowed_Reverts() public {
+        token.approve(alice, 50e18);
+        vm.expectRevert("ERC20: burn from value not allowed");
+        vm.prank(alice);
+        token.burnFrom(owner, 100e18);
+    }
 
     // ============================================
     // PAUSE TESTS
