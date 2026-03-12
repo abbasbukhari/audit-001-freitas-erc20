@@ -72,11 +72,31 @@ contract ERC20Test is Test {
         );
     }
 
+    function test_Transfer_ToZeroAddress_Reverts() public {
+        vm.expectRevert("ERC20: to address is not valid");
+        token.transfer(address(0), 100e18);
+    }
+
+    function test_Transfer_InsufficientBalance_Reverts() public {
+        vm.expectRevert("ERC20: insufficient balance");
+        vm.prank(alice);
+        token.transfer(bob, 100e18);
+    }
+
     // ============================================
     // APPROVE & ALLOWANCE TESTS
     // ============================================
 
-    // TODO: Add approve tests here
+    function test_Approve_Success() public {
+        token.approve(bob, 500e18);
+        uint256 allowed = token.allowance(owner, bob);
+        assertEq(allowed, 500e18, "Allowance should be set to approved amount");
+    }
+
+    function test_Approve_ToZeroAddress_Reverts() public {
+        vm.expectRevert();
+        token.approve(address(0), 100e18);
+    }
 
     // ============================================
     // TRANSFER FROM TESTS
