@@ -98,11 +98,48 @@ contract ERC20Test is Test {
         token.approve(address(0), 100e18);
     }
 
+    function test_Allowance_ReturnsCorrectValue() public {
+        token.approve(bob, 300e18);
+        uint256 allowed = token.allowance(owner, bob);
+        assertEq(allowed, 300e18, "Allowance should return approved amount");
+    }
+
     // ============================================
     // TRANSFER FROM TESTS
     // ============================================
 
-    // TODO: Add transferFrom tests here
+    function test_TransferFrom_Success() public {
+        token.approve(alice, 500e18);
+        uint256 ownerBefore = token.balanceOf(owner);
+        uint256 bobBefore = token.balanceOf(bob);
+        vm.prank(alice);
+        token.transferFrom(owner, bob, 100e18);
+        uint256 ownerAfter = token.balanceOf(owner);
+        uint256 bobAfter = token.balanceOf(bob);
+        assertEq(
+            ownerAfter,
+            ownerBefore - 100e18,
+            "Owner's balance should decrease by 100 tokens"
+        );
+        assertEq(
+            bobAfter,
+            bobBefore + 100e18,
+            "Bob's balance should increase by 100 tokens"
+        );
+    }
+
+    function test_TransferFrom_ToZeroAddress_Reverts() public {
+        token.approve(alice, 100e18);
+        vm.expectRevert("ERC20: to address is not valid");
+        vm.prank(alice);
+        token.transferFrom(owner, address(0), 100e18);
+    }
+
+    function test_TransferFrom_InsufficientBalance_Reverts() public {
+        vm.expectRevert("ERC20: insufficient balance");
+        vm.prank(alice);
+        token.transferFrom(alice, bob, 100e18);
+    }
 
     // ============================================
     // MINT TESTS
