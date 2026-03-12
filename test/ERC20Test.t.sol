@@ -52,16 +52,23 @@ contract ERC20Test is Test {
     // ============================================
 
     function test_Transfer_Success() public {
-        token.transfer(alice, 100e18);
+        token.transfer(alice, 1000e18);
+        uint256 aliceBefore = token.balanceOf(alice);
+        uint256 bobBefore = token.balanceOf(bob);
+
+        vm.prank(alice);
+        token.transfer(bob, 100e18);
+        uint256 aliceAfter = token.balanceOf(alice);
+        uint256 bobAfter = token.balanceOf(bob);
         assertEq(
-            token.balanceOf(alice),
-            100e18,
-            "Alice should receive 100 tokens"
+            aliceAfter,
+            aliceBefore - 100e18,
+            "Alice's balance should decrease by 100 tokens"
         );
         assertEq(
-            token.balanceOf(owner),
-            900e18,
-            "Owner should have 900 tokens left"
+            bobAfter,
+            bobBefore + 100e18,
+            "Bob's balance should increase by 100 tokens"
         );
     }
 
