@@ -234,5 +234,15 @@ contract ERC20Test is Test {
     // PAUSE TESTS
     // ============================================
 
-    // TODO: Add pause/unpause tests here
+    function test_Pause_NotOwner_Reverts() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(alice);
+        token.pause();
+    }
+
+    function test_Unpause_NotOwner_Reverts() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(alice);
+        token.unpause();
+    }
 }

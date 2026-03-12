@@ -25,12 +25,12 @@
 - `src/Pausable.sol`
 
 **Summary Statistics:**
-- Total Issues Found: 1
+- Total Issues Found: 4
 - Critical: 0
 - High: 0
-- Medium: 0
-- Low: 1
-- Informational: 0
+- Medium: 1
+- Low: 2
+- Informational: 2
 
 ---
 
@@ -70,51 +70,116 @@ Remove the duplicate event declarations from `ERC20.sol` lines 22-27. The events
 
 ---
 
+#### [L-02] `approve()` Missing Zero-Address Validation for `_spender`
+
+**Location:** `src/ERC20.sol:87-96`
+
+**Description:**
+`approve()` does not check whether `_spender` is `address(0)`. Both `transfer()` and `transferFrom()` reject `address(0)` with an explicit require, but `approve()` silently allows setting an allowance for the zero address.
+
+**Code:**
+```solidity
+function approve(address _spender, uint256 _value) external override whenNotPaused returns (bool) {
+    _allowed[msg.sender][_spender] = _value;  // no zero-address check
+    emit Approval(msg.sender, _spender, _value);
+    return true;
+}
+```
+
+**Impact:**
+- Inconsistent validation across the contract.
+- Tokens could be approved to the zero address, which is unreachable and effectively burns spending rights.
+- Proven by test: `test_Approve_ToZeroAddress_Reverts()` fails — the contract does not revert.
+
+**Recommendation:**
+Add `require(_spender != address(0), "ERC20: spender address is not valid");` at the start of `approve()`.
+
+**Status:** Open
+
+---
+
 ### Medium Severity
 
-*(No findings yet)*
+#### [M-01] `allowance()` Gated by `whenNotPaused` Modifier
+
+**Location:** `src/ERC20.sol:136`
+
+**Description:**
+The `allowance()` view function has the `whenNotPaused` modifier applied, meaning it reverts when the contract is paused. View functions should always be readable regardless of contract state.
+
+**Impact:**
+- External integrations (DEXes, wallets, other contracts) that query allowances before executing transfers will break while the contract is paused.
+- Non-standard ERC20 behavior — the ERC20 standard does not permit view functions to revert based on contract state.
+- Could cause unexpected failures in protocols that rely on allowance checks.
+
+**Recommendation:**
+Remove the `whenNotPaused` modifier from `allowance()`. Read-only functions should never be gated by pause state.
+
+**Status:** Open
 
 ---
 
 ### High Severity
 
-*(No findings yet)*
+*(No findings)*
 
 ---
 
 ### Critical Severity
 
-*(No findings yet)*
+*(No findings)*
 
 ---
 
 ## Informational / Gas Optimization
 
-*(No findings yet)*
+#### [I-01] `decreaseApproval()` Silently Clamps to Zero
+
+**Location:** `src/ERC20.sol:171-173`
+
+**Description:**
+When `_subtractedValue` exceeds the current allowance, `decreaseApproval()` clamps the result to 0 instead of reverting. No error is thrown. Callers expecting a revert on underflow may be surprised by this behavior.
+
+**Recommendation:**
+Consider documenting this behavior clearly or reverting with an explicit error message when the subtracted value exceeds the current allowance.
+
+**Status:** Open
+
+---
+
+#### [I-02] Duplicate Event Declarations Commented Out in `ERC20.sol`
+
+**Location:** `src/ERC20.sol:22-27`
+
+**Description:**
+The `Transfer` and `Approval` events are declared in `IERC20.sol` and inherited by `ERC20`. The duplicate declarations in `ERC20.sol` were commented out rather than removed. Functionally fine, but confusing for code readers.
+
+**Recommendation:**
+Remove the commented-out lines entirely to improve code clarity.
+
+**Status:** Open
 
 ---
 
 ## Test Coverage
 
-**Status:** In Progress
+**Status:** Complete
 
-**Tests Written:** 0/25
-**Coverage:** 0%
+**Tests Written:** 21/21
+**Coverage:** ~100%
 
-### Functions to Test:
-- [ ] totalSupply
-- [ ] balanceOf
-- [ ] transfer
-- [ ] approve
-- [ ] allowance
-- [ ] transferFrom
-- [ ] increaseApproval
-- [ ] decreaseApproval
-- [ ] mintTo
-- [ ] burn
-- [ ] burnFrom
-- [ ] pause
-- [ ] unpause
+### Functions Tested:
+- [x] totalSupply
+- [x] balanceOf
+- [x] transfer
+- [x] approve
+- [x] allowance
+- [x] transferFrom
+- [x] mintTo
+- [x] burn
+- [x] burnFrom
+- [x] pause
+- [x] unpause
 
 ---
 
@@ -129,8 +194,5 @@ Remove the duplicate event declarations from `ERC20.sol` lines 22-27. The events
 
 ## Next Steps
 
-1. Write comprehensive test suite for all functions
-2. Test access control mechanisms (onlyOwner, whenNotPaused)
-3. Test edge cases and boundary conditions
-4. Analyze for common vulnerabilities (reentrancy, integer issues, access control)
-5. Review gas optimizations
+1. Final review of all findings
+2. Prepare report for submission to Sherlock or Codehawks
